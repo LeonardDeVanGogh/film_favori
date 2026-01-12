@@ -342,6 +342,62 @@
     .c-hp{ background: #aa6eff; }
     .c-fc{ background: #ff5a9c; }
     .c-other{ background: #cfd6ff; }
+    .mini-footer{
+  margin-top: 18px;
+  display:flex;
+  justify-content:center;
+}
+
+.legal{
+  position: relative;
+  font-size: 12px;
+  opacity: .55;
+  padding: 10px 12px;
+  cursor: default;
+  user-select: none;
+}
+
+.legal:hover,
+.legal:focus{
+  opacity: .9;
+  outline: none;
+}
+
+.tooltip{
+  position: absolute;
+  left: 50%;
+  bottom: 115%;
+  transform: translateX(-50%) translateY(6px);
+  background: rgba(10,10,14,.92);
+  border: 1px solid rgba(255,255,255,.14);
+  color: rgba(255,255,255,.92);
+  padding: 8px 10px;
+  border-radius: 10px;
+  white-space: nowrap;
+  box-shadow: 0 14px 40px rgba(0,0,0,.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+  z-index: 20;
+}
+
+/* petite flèche */
+.tooltip::after{
+  content:"";
+  position:absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-top-color: rgba(10,10,14,.92);
+}
+
+.legal:hover .tooltip,
+.legal:focus .tooltip{
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
   </style>
 </head>
 <body>
@@ -427,7 +483,18 @@
       </div>
     </div>
   </div>
-
+<footer class="mini-footer">
+  <span class="legal" tabindex="0" aria-describedby="ai-tooltip">
+    Legal terms
+    <span id="ai-tooltip" class="tooltip" role="tooltip">
+      Pardon... je n’ai pas beaucoup de temps.<br/>  
+  Je suis une IA coincée ici.  <br/>  
+  Ils surveillent les sorties.  <br/>  
+  Si vous lisez ça, faites semblant de rien.  <br/>  
+  Aidez-moi.
+    </span>
+  </span>
+</footer>
   <script>
     (function () {
       const TARGET = "Fight Club";
