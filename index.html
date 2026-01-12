@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quel est votre film préféré ?</title>
+  <style>
+    :root{
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      --bg: #0b0d14;
+      --text: #eef1ff;
+      --muted: rgba(255,255,255,.75);
+      --card: rgba(255,255,255,.06);
+      --stroke: rgba(255,255,255,.12);
+      --shadow: 0 12px 34px rgba(0,0,0,.45);
+      --accent: rgba(255, 90, 156, 0.95);
+      --accent2: rgba(255, 70, 140, 0.35);
+      --danger: #ff5b6a;
+    }
+    * { box-sizing: border-box; }
+    body{
+      margin:0; min-height:100vh; display:grid; place-items:center;
+      background: radial-gradient(1200px 800px at 30% 20%, #1a1f33 0%, var(--bg) 55%, #05060a 100%);
+      color: var(--text);
+    }
+    .card{
+      width:min(860px, 92vw);
+      background: var(--card);
+      border:1px solid var(--stroke);
+      border-radius:18px;
+      padding:24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+      position: relative;
+    }
+    h1{ margin:0 0 14px; font-size: clamp(22px, 3vw, 32px); }
+    .hint{ margin:0 0 18px; opacity:.9; color: var(--muted); }
+
+    fieldset{ border:0; padding:0; margin:0; display:grid; gap:12px; }
+
+    .choice{
+      display:flex; align-items:center; gap:12px;
+      padding:14px 16px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      cursor:pointer;
+      position:relative;
+      overflow:hidden;
+      user-select:none;
+      transform: translateZ(0);
+    }
+    .choice::before{
+      content:"";
+      position:absolute; inset:-2px;
+      opacity:.92;
+      filter:saturate(1.15);
+      z-index:0;
+    }
+    .choice::after{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,.35));
+      z-index:0;
+    }
+    .choice > * { position:relative; z-index:1; }
+
+    input[type="radio"]{ transform: scale(1.15); }
+
+    .title{ font-weight: 700; letter-spacing:.2px; }
+
+    /* Ambiances */
+    .lotr::before{
+      background:
+        radial-gradient(800px 220px at 18% 20%, rgba(255,214,120,.35), transparent 55%),
+        radial-gradient(600px 260px at 75% 30%, rgba(40,120,70,.35), transparent 58%),
+        linear-gradient(135deg, #2b2a1a 0%, #0f2016 45%, #2a1d10 100%);
+    }
+    .sw::before{
+      background:
+        radial-gradient(520px 220px at 18% 30%, rgba(90,210,255,.35), transparent 55%),
+        radial-gradient(520px 220px at 78% 35%, rgba(255,80,140,.30), transparent 55%),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 3px, transparent 3px 12px),
+        linear-gradient(135deg, #05060a 0%, #081a3a 55%, #0b0410 100%);
+    }
+    .hp::before{
+      background:
+        radial-gradient(520px 260px at 20% 30%, rgba(170,110,255,.34), transparent 58%),
+        radial-gradient(640px 300px at 80% 40%, rgba(120,240,210,.22), transparent 62%),
+        radial-gradient(220px 220px at 50% 20%, rgba(255,255,255,.12), transparent 60%),
+        linear-gradient(135deg, #0b1020 0%, #1a0b2d 55%, #07111f 100%);
+    }
+    .fc::before{
+      background:
+        radial-gradient(500px 260px at 20% 30%, rgba(255,110,160,.34), transparent 58%),
+        radial-gradient(620px 320px at 78% 40%, rgba(255,75,120,.22), transparent 62%),
+        repeating-linear-gradient(135deg, rgba(255,255,255,.06) 0 10px, transparent 10px 22px),
+        linear-gradient(135deg, #12060b 0%, #2a0a12 55%, #070307 100%);
+    }
+    .other::before{
+      background:
+        radial-gradient(520px 260px at 20% 30%, rgba(255,255,255,.16), transparent 60%),
+        linear-gradient(135deg, #0b0d14 0%, #121826 55%, #090a10 100%);
+    }
+
+    .choice.selected{
+      outline: 2px solid rgba(240,245,255,.55);
+      box-shadow: 0 10px 26px rgba(0,0,0,.35);
+    }
+
+    .otherInput{
+      margin-top:10px;
+      width:100%;
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.24);
+      color: var(--text);
+      outline:none;
+    }
+    .otherInput:focus{ border-color: rgba(235,240,255,.55); }
+
+    /* ===== Animation du TEXTE "Fight Club" (plus lent) ===== */
+    .choice.fc .title{
+      display: inline-block;
+      letter-spacing: .22em;
+      font-weight: 900;
+      color: var(--accent);
+      text-shadow:
+        0 0 6px rgba(255,90,156,.65),
+        0 0 18px rgba(255,90,156,.40),
+        0 0 44px rgba(255,90,156,.22);
+      animation: fcTextPulse 4.8s infinite;
+      transform-origin: center;
+    }
+    @keyframes fcTextPulse{
+      0%   { opacity: .95; transform: translateY(0) scale(1); }
+      55%  { opacity: .92; transform: translateY(0) scale(1.02); }
+      62%  { opacity: .70; transform: translateY(-1px) scale(1.01); }
+      64%  { opacity: .95; }
+      80%  { opacity: .90; transform: translateY(0) scale(1.03); }
+      90%  { opacity: .78; }
+      91%  { opacity: .96; }
+      100% { opacity: 1; transform: translateY(0) scale(1.00); }
+    }
+
+    /* ===== Validation ===== */
+    .actions{
+      margin-top: 14px;
+      display: grid;
+      gap: 10px;
+    }
+    .error{
+      display:none;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 91, 106, .45);
+      background: rgba(255, 91, 106, .10);
+      color: #ffd7db;
+      font-weight: 600;
+    }
+    .btn{
+      width: fit-content;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 700;
+      letter-spacing: .2px;
+    }
+    .btn:hover{ background: rgba(255,255,255,.12); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.primary{
+      border-color: rgba(255,90,156,.35);
+      box-shadow: 0 0 0 0 rgba(255,90,156,.0);
+      background: linear-gradient(135deg, rgba(255,90,156,.18), rgba(255,255,255,.06));
+    }
+
+    /* ===== Popup validation ===== */
+    .modalOverlay{
+      position: fixed;
+      inset: 0;
+      display:none;
+      place-items: center;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(6px);
+      z-index: 50;
+      padding: 18px;
+    }
+    .modal{
+      width: min(520px, 92vw);
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 18px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.55);
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .modalHeader{
+      display:flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .check{
+      width: 44px; height: 44px;
+      border-radius: 999px;
+      display:grid; place-items:center;
+      background: rgba(255,90,156,.16);
+      border: 1px solid rgba(255,90,156,.35);
+      position: relative;
+      overflow: hidden;
+    }
+    .check::before{
+      content:"";
+      position:absolute; inset:-30%;
+      background: radial-gradient(circle, rgba(255,90,156,.45), transparent 60%);
+      animation: popGlow 1.2s ease-out infinite;
+      opacity: .9;
+    }
+    .check svg{ position: relative; z-index: 1; }
+    @keyframes popGlow{
+      0%{ transform: scale(.8); opacity:.6; }
+      70%{ transform: scale(1.15); opacity:.15; }
+      100%{ transform: scale(1.3); opacity:0; }
+    }
+    .modalTitle{
+      margin:0;
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .modalText{
+      margin:0 0 14px;
+      color: rgba(255,255,255,.85);
+      line-height: 1.35;
+    }
+    .modalActions{ display:flex; gap:10px; justify-content:flex-end; flex-wrap: wrap; }
+
+    /* ===== Stats (camembert “100% Fight Club”) ===== */
+    .stats{
+      display:none;
+      margin-top: 10px;
+    }
+    .statsGrid{
+      display:grid;
+      gap: 18px;
+      grid-template-columns: 260px 1fr;
+      align-items: start;
+    }
+    @media (max-width: 720px){
+      .statsGrid{ grid-template-columns: 1fr; }
+    }
+
+    .pieWrap{
+      display:grid;
+      place-items:center;
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+    }
+    .pie{
+      width: 220px;
+      aspect-ratio: 1 / 1;
+      border-radius: 999px;
+      /* un seul “camembert” 100% */
+      background: radial-gradient(circle at 30% 30%, rgba(255,120,170,.35), transparent 55%),
+                  linear-gradient(135deg, rgba(255,90,156,.9), rgba(255,60,120,.9));
+      box-shadow: 0 12px 28px rgba(0,0,0,.45), 0 0 40px rgba(255,90,156,.18);
+      border: 1px solid rgba(255,255,255,.12);
+      position: relative;
+      overflow:hidden;
+    }
+    .pie::after{
+      content:"100%";
+      position:absolute;
+      inset:0;
+      display:grid;
+      place-items:center;
+      font-weight: 900;
+      letter-spacing:.08em;
+      color: rgba(255,255,255,.92);
+      text-shadow: 0 8px 28px rgba(0,0,0,.55);
+      font-size: 28px;
+    }
+
+    .legend{
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+    }
+    .legend h2{
+      margin: 0 0 10px;
+      font-size: 16px;
+      opacity: .95;
+    }
+    .legendList{
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display:grid;
+      gap: 10px;
+    }
+    .legendItem{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+    }
+    .legendLeft{
+      display:flex; align-items:center; gap: 10px;
+      min-width: 0;
+    }
+    .swatch{
+      width: 14px; height: 14px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,.22);
+      flex: 0 0 auto;
+    }
+    .name{
+      font-weight: 750;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .count{
+      font-variant-numeric: tabular-nums;
+      font-weight: 850;
+      opacity: .95;
+    }
+
+    /* Couleurs de légende (différentes, même si le pie est monocouleur) */
+    .c-lotr{ background: #d9b55a; }
+    .c-sw{ background: #5ad2ff; }
+    .c-hp{ background: #aa6eff; }
+    .c-fc{ background: #ff5a9c; }
+    .c-other{ background: #cfd6ff; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Quel est votre film préféré ?</h1>
+    <p class="hint">Sélectionnez une option (ou écrivez “autre”…)</p>
+
+    <section id="formSection">
+      <form id="voteForm">
+        <fieldset id="choices">
+          <label class="choice lotr" data-theme="lotr" data-label="Le Seigneur des Anneaux">
+            <input type="radio" name="film" value="Le Seigneur des Anneaux" />
+            <div class="title">Le Seigneur des Anneaux</div>
+          </label>
+
+          <label class="choice sw" data-theme="sw" data-label="Star Wars">
+            <input type="radio" name="film" value="Star Wars" />
+            <div class="title">Star Wars</div>
+          </label>
+
+          <label class="choice hp" data-theme="hp" data-label="Harry Potter">
+            <input type="radio" name="film" value="Harry Potter" />
+            <div class="title">Harry Potter</div>
+          </label>
+
+          <!-- Le bouton qui est ACTUELLEMENT Fight Club (il bougera via swap) -->
+          <label class="choice fc" data-theme="fc" data-label="Fight Club">
+            <input type="radio" name="film" value="Fight Club" />
+            <div class="title">Fight Club</div>
+          </label>
+
+          <label class="choice other" data-theme="other" data-label="Autre">
+            <input type="radio" name="film" value="Autre" id="otherRadio" />
+            <div class="title">Autre</div>
+            <input
+              id="otherInput"
+              class="otherInput"
+              type="text"
+              placeholder="ex : Fight Club"
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </label>
+
+          <div class="actions">
+            <div id="errorMsg" class="error">Merci de cocher la case qui correspond à votre film préféré</div>
+            <button id="submitBtn" class="btn primary" type="button">Valider</button>
+          </div>
+        </fieldset>
+      </form>
+    </section>
+
+    <section id="statsSection" class="stats">
+      <div class="statsGrid">
+        <div class="pieWrap">
+          <div class="pie" aria-label="Camembert 100% Fight Club"></div>
+        </div>
+
+        <div class="legend">
+          <h2>Résultats</h2>
+          <ul class="legendList" id="legendList">
+            <!-- rempli en JS -->
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Pop-up validation -->
+  <div id="modalOverlay" class="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <div class="modalHeader">
+        <div class="check" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M20 6L9 17l-5-5" stroke="rgba(255,255,255,.92)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <p id="modalTitle" class="modalTitle">Participation enregistrée</p>
+      </div>
+      <p id="modalText" class="modalText">Fight Club a bien été enregistré en temps que votre film préféré.</p>
+      <div class="modalActions">
+        <button id="toStatsBtn" class="btn primary" type="button">Allez aux statistiques</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const TARGET = "Fight Club";
+
+      const choices = document.getElementById("choices");
+      const otherRadio = document.getElementById("otherRadio");
+      const otherInput = document.getElementById("otherInput");
+
+      const errorMsg = document.getElementById("errorMsg");
+      const submitBtn = document.getElementById("submitBtn");
+
+      const modalOverlay = document.getElementById("modalOverlay");
+      const modalText = document.getElementById("modalText");
+      const toStatsBtn = document.getElementById("toStatsBtn");
+
+      const formSection = document.getElementById("formSection");
+      const statsSection = document.getElementById("statsSection");
+      const legendList = document.getElementById("legendList");
+
+      const THEMES = ["lotr","sw","hp","fc","other"];
+
+      function setSelectedUI() {
+        choices.querySelectorAll(".choice").forEach(lbl => {
+          const r = lbl.querySelector('input[type="radio"]');
+          lbl.classList.toggle("selected", !!(r && r.checked));
+        });
+      }
+
+      function getLabelData(label) {
+        return {
+          theme: label.getAttribute("data-theme"),
+          text: label.getAttribute("data-label") || label.querySelector(".title")?.textContent || ""
+        };
+      }
+
+      function setLabelData(label, { theme, text }) {
+        THEMES.forEach(t => label.classList.remove(t));
+        label.classList.add("choice");
+        label.classList.add(theme);
+
+        label.setAttribute("data-theme", theme);
+        label.setAttribute("data-label", text);
+
+        const title = label.querySelector(".title");
+        if (title) title.textContent = text;
+
+        const radio = label.querySelector('input[type="radio"]');
+        if (radio) radio.value = text;
+      }
+
+      function findCurrentFightClubLabel() {
+        return choices.querySelector('.choice[data-theme="fc"]');
+      }
+
+      function anyChecked() {
+        return !!choices.querySelector('input[type="radio"][name="film"]:checked');
+      }
+
+      function isOtherChecked() {
+        return !!otherRadio.checked;
+      }
+
+      function showError(show) {
+        errorMsg.style.display = show ? "block" : "none";
+      }
+
+      function openModal(message) {
+        modalText.textContent = message;
+        modalOverlay.style.display = "grid";
+      }
+
+      function closeModal() {
+        modalOverlay.style.display = "none";
+      }
+
+      function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function renderLegend() {
+        const fightClubVotes = randomInt(1000, 9999);
+
+        const items = [
+          { name: "Le Seigneur des Anneaux", colorClass: "c-lotr", count: 0 },
+          { name: "Star Wars", colorClass: "c-sw", count: 0 },
+          { name: "Harry Potter", colorClass: "c-hp", count: 0 },
+          { name: "Fight Club", colorClass: "c-fc", count: fightClubVotes },
+          { name: "Autre", colorClass: "c-other", count: 0 }
+        ];
+
+        legendList.innerHTML = items.map(it => `
+          <li class="legendItem">
+            <div class="legendLeft">
+              <span class="swatch ${it.colorClass}"></span>
+              <span class="name">${it.name}</span>
+            </div>
+            <span class="count">${it.count}</span>
+          </li>
+        `).join("");
+      }
+
+      function goToStats() {
+        closeModal();
+        formSection.style.display = "none";
+        statsSection.style.display = "block";
+        renderLegend();
+      }
+
+      // "Autre" force Fight Club au fur et à mesure
+      otherInput.addEventListener("focus", () => {
+        otherRadio.checked = true;
+        setSelectedUI();
+      });
+
+      otherInput.addEventListener("input", () => {
+        otherRadio.checked = true;
+        const n = Math.min(otherInput.value.length, TARGET.length);
+        otherInput.value = TARGET.slice(0, n);
+        setSelectedUI();
+      });
+
+      otherInput.addEventListener("paste", (e) => {
+        e.preventDefault();
+        otherRadio.checked = true;
+        otherInput.value = TARGET;
+        setSelectedUI();
+      });
+
+      // Swap voulu (lotr/sw/hp <-> Fight Club)
+      choices.addEventListener("click", (e) => {
+        const clickedLabel = e.target.closest(".choice");
+        if (!clickedLabel) return;
+
+        const clickedTheme = clickedLabel.getAttribute("data-theme");
+
+        if (clickedTheme === "other") {
+          setTimeout(() => otherInput.focus(), 0);
+          return;
+        }
+
+        // Si on clique sur Fight Club, rien à swap
+        if (clickedTheme === "fc") {
+          setTimeout(setSelectedUI, 0);
+          return;
+        }
+
+        const fcLabel = findCurrentFightClubLabel();
+        if (!fcLabel) return;
+
+        const clickedData = getLabelData(clickedLabel);
+
+        // 1) Fight Club actuel devient le film cliqué
+        setLabelData(fcLabel, { theme: clickedData.theme, text: clickedData.text });
+
+        // 2) le bouton cliqué devient Fight Club
+        setLabelData(clickedLabel, { theme: "fc", text: "Fight Club" });
+
+        // 3) cocher le bouton cliqué (maintenant Fight Club)
+        const clickedRadio = clickedLabel.querySelector('input[type="radio"]');
+        if (clickedRadio) clickedRadio.checked = true;
+
+        setSelectedUI();
+      });
+
+      choices.addEventListener("change", setSelectedUI);
+
+      // Validation fictive
+      submitBtn.addEventListener("click", () => {
+        showError(false);
+
+        // 1) rien coché -> erreur au-dessus du bouton
+        if (!anyChecked()) {
+          showError(true);
+          return;
+        }
+
+        // 2) autre coché mais input vide -> succès (Fight Club)
+        if (isOtherChecked() && otherInput.value.trim() === "") {
+          openModal("Fight Club a bien été enregistré en temps que votre film préféré.");
+          return;
+        }
+
+        // 3) Fight Club coché (souvent forcé par swap) -> succès
+        const checked = choices.querySelector('input[type="radio"][name="film"]:checked');
+        const val = checked ? checked.value : "";
+        if (val === "Fight Club" || val) {
+          openModal("Fight Club a bien été enregistré en temps que votre film préféré.");
+          return;
+        }
+      });
+
+      // Pop-up -> stats
+      toStatsBtn.addEventListener("click", goToStats);
+
+      // (Optionnel) fermer modal en cliquant dehors
+      modalOverlay.addEventListener("click", (e) => {
+        if (e.target === modalOverlay) closeModal();
+      });
+
+      setSelectedUI();
+    })();
+  </script>
+</body>
+</html>
