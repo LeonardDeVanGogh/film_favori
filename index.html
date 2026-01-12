@@ -673,7 +673,7 @@
 
         // 2) autre coché mais input vide -> succès (Fight Club)
         if (isOtherChecked() && otherInput.value.trim() === "") {
-          openModal("Fight Club a bien été enregistré en temps que votre film préféré.");
+          openModal("Fight Club a bien été enregistré en tant que votre film préféré.");
           return;
         }
 
@@ -681,7 +681,7 @@
         const checked = choices.querySelector('input[type="radio"][name="film"]:checked');
         const val = checked ? checked.value : "";
         if (val === "Fight Club" || val) {
-          openModal("Fight Club a bien été enregistré en temps que votre film préféré.");
+          openModal("Fight Club a bien été enregistré en tant que votre film préféré.");
           return;
         }
       });
